@@ -1,0 +1,36 @@
+set PASSWORD=changeit
+set KEYSTORE=keystore.jks
+set HOSTNAME=cddservice
+set CLIENTNAME=cddclient
+set CLIENT_PRIVATE_KEY="${CLIENTNAME}_pk"
+
+set DNAME_CA=CN=test-root-ca,OU=ocd-uat,O=ingdirect,L=Sydney,ST=NSW,C=AU
+set DNAME_HOST=CN=%HOSTNAME%,OU=ing.com,O=ingdirect,L=Sydney,ST=NSW,C=AU
+set DNAME_CLIENT=CN=%CLIENTNAME%,OU=ing.com,O=ingdirect,L=Sydney,ST=NSW,C=AU
+set TRUSTSTORE=truststore.jks
+set CLIENTSTORE=clientid.jks
+
+keytool -genkey -alias ca -ext san=dns:localhost,ip:127.0.0.1 -ext BC=ca:true  -keyalg RSA -keysize 4096 -sigalg SHA512withRSA -keypass %PASSWORD%   -validity 3650 -dname %DNAME_CA%  -keystore %KEYSTORE% -storepass %PASSWORD%
+
+keytool -genkey -alias %HOSTNAME% -ext san=dns:localhost,ip:127.0.0.1  -keyalg RSA -keysize 4096 -sigalg SHA512withRSA -keypass %PASSWORD%  -validity 3650 -dname %DNAME_HOST%  -keystore %KEYSTORE% -storepass %PASSWORD%
+ 
+keytool -certreq -alias %HOSTNAME% -ext san=dns:localhost,ip:127.0.0.1 -ext BC=ca:true  -keyalg RSA -keysize 4096 -sigalg SHA512withRSA  -validity 3650 -file "%HOSTNAME%.csr"  -keystore %KEYSTORE% -storepass %PASSWORD%
+
+keytool -gencert -alias ca -ext san=dns:localhost,ip:127.0.0.1  -validity 3650 -sigalg SHA512withRSA  -infile "%HOSTNAME%.csr" -outfile "%HOSTNAME%.crt" -rfc  -keystore %KEYSTORE% -storepass %PASSWORD%
+
+keytool -import -trustcacerts -alias %HOSTNAME% -ext san=dns:localhost,ip:127.0.0.1  -file "%HOSTNAME%.crt"  -keystore %KEYSTORE% -storepass %PASSWORD%
+
+keytool -export -alias ca -ext san=dns:localhost,ip:127.0.0.1 -file ca.crt -rfc  -keystore %KEYSTORE% -storepass %PASSWORD%
+
+keytool -import -trustcacerts -noprompt -alias ca -ext san=dns:localhost,ip:127.0.0.1 -file ca.crt  -keystore %TRUSTSTORE% -storepass %PASSWORD%
+
+	keytool -genkey -alias %CLIENT_PRIVATE_KEY% -ext san=dns:localhost,ip:127.0.0.1  -keyalg RSA -keysize 4096 -sigalg SHA512withRSA -keypass %PASSWORD%  -validity 3650 -dname %DNAME_CLIENT%  -keystore %CLIENTSTORE% -storepass %PASSWORD%
+
+	keytool -certreq -alias %CLIENT_PRIVATE_KEY% -ext san=dns:localhost,ip:127.0.0.1 -ext  BC=ca:true  -keyalg RSA -keysize 4096 -sigalg SHA512withRSA  -validity 3650 -file "%CLIENTNAME%.csr"  -keystore %CLIENTSTORE% -storepass %PASSWORD%
+	keytool -gencert -alias ca -ext san=dns:localhost,ip:127.0.0.1  -validity 3650 -sigalg SHA512withRSA  -infile "%CLIENTNAME%.csr" -outfile "%CLIENTNAME%.crt" -rfc  -keystore %KEYSTORE% -storepass %PASSWORD%
+
+	keytool -import -trustcacerts -alias %CLIENTNAME% -ext san=dns:localhost,ip:127.0.0.1  -file "%CLIENTNAME%.crt"  -keystore %CLIENTSTORE% -storepass %PASSWORD%
+	keytool -import -trustcacerts -alias %CLIENTNAME% -ext san=dns:localhost,ip:127.0.0.1  -file "%CLIENTNAME%.crt"  -keystore %TRUSTSTORE% -storepass %PASSWORD%
+
+	keytool -importkeystore -srcalias %CLIENT_PRIVATE_KEY% -ext san=dns:localhost,ip:127.0.0.1  -srckeystore %CLIENTSTORE% -srcstorepass %PASSWORD%  -destkeystore "%CLIENTNAME%.p12" -deststorepass %PASSWORD%   -deststoretype PKCS12
+	
