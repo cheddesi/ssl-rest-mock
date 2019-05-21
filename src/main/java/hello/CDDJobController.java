@@ -5,10 +5,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Random;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/v1/CDDJob")
 public class CDDJobController {
 
+	@PreAuthorize("hasAuthority('ROLE_USER')")
     @RequestMapping("/status")
     public CDDJob status() {
     	Random randomGenerator = new Random();
@@ -19,6 +22,7 @@ public class CDDJobController {
 			return new CDDJob("STOPPED");
 		}
     }
+	@PreAuthorize("hasAuthority('ROLE_USER')")
     @RequestMapping(value = "/start", method=RequestMethod.POST)
     public CDDJob start() {
     	Random randomGenerator = new Random();
@@ -34,6 +38,7 @@ public class CDDJobController {
 			return new CDDJob("STARTED", randomInt);
 		}
     }
+	@PreAuthorize("hasAuthority('ROLE_USER')")
     @RequestMapping(value = "/stop", method=RequestMethod.POST)
     public CDDJob stop() {
     	Random randomGenerator = new Random();
