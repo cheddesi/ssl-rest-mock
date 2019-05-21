@@ -33,7 +33,7 @@ public class CDDJobController {
 		} else if(randomInt==2) {
 			return new CDDJob("STARTING");
 		} else if (randomInt==3) {
-			return new CDDJob("FAILED");
+			return new CDDJob("FAILED","Failed to start due to DB issue", "Some boring error description here");
 		} else {
 			return new CDDJob("STARTED", randomInt);
 		}
@@ -48,7 +48,7 @@ public class CDDJobController {
 		} else if(randomInt==2) {
 			return new CDDJob("STOPPED");
 		} else {
-			return new CDDJob("FAILED");
+			return new CDDJob("FAILED","Failed to stop due to DB issue", "Some boring error description here");
 		}
     }    
 }
